@@ -2,23 +2,27 @@
 
 Ce projet contient les tracés des entités géographiques et administratives françaises suivantes au format [GeoJSON](http://geojson.org/) :
 
-* Régions (post-redécoupage de 2015).
-* Anciennes régions métropolitaines (avant redécoupage).
+* Régions
 * Départements
 * Cantons
 * Arrondissements
 * Communes
 
-Des fichiers nationaux, avec et sans les départements et régions d'outre-mer, sont inclus à la racine du projet et des subdivisions [par région](https://github.com/gregoiredavid/france-geojson/blob/v2-dev/regions/) et [par département](https://github.com/gregoiredavid/france-geojson/blob/v2-dev/departements/) dans leurs dossiers respectifs :
-
-* Contours des départements par région (exemple : [Départements de la région Bourgogne-Franche-Comté](https://github.com/gregoiredavid/france-geojson/blob/v2-dev/regions/bourgogne-franche-comte/departements-bourgogne-franche-comte.geojson)).
-* Contours des arrondissements par région et par départements (exemple : [Arrondissements du Finistère](https://github.com/gregoiredavid/france-geojson/blob/v2-dev/departements/29-finistere/arrondissements-29-finistere.geojson)).
-* Contours des cantons par région et par départements (exemple : [Cantons de Corrèze](https://github.com/gregoiredavid/france-geojson/blob/v2-dev/departements/19-correze/cantons-19-correze.geojson)).
-* Contours des communes par région et par départements (exemple : [Communes du Bas-Rhin](https://github.com/gregoiredavid/france-geojson/blob/v2-dev/departements/67-bas-rhin/communes-67-bas-rhin.geojson)).
+À la racine du repo on trouvera également le tracé des anciennes régions métropolitaines (avant redécoupage de 2015).
 
 ## Simplification
 
-Pour optimiser la taille des fichiers, les contours ont été largement simplifiés (détails ci-dessous). Pour une version non-simplifiée des tracés, [utiliser la branche "v2-hd-dev"](https://github.com/gregoiredavid/france-geojson/tree/v2-hd-dev).
+Pour optimiser la taille des fichiers, les tracés ont été simplifiés (voir détails ci-dessous : "comment ont été générés ces fichiers ?"). La version "brute", non simplifiée, des tracés est disponible en téléchargement [en cliquant sur ce lien (143 Mo)](https://france-geojson.gregoiredavid.fr/download/france-geojson-raw.tgz).
+
+## Organisation des fichiers
+
+Des fichiers nationaux, avec et sans les départements et régions d'outre-mer, sont inclus à la racine du projet et des subdivisions [par région](https://github.com/gregoiredavid/france-geojson/tree/master/regions/) et [par département](https://github.com/gregoiredavid/france-geojson/tree/master/departements/) dans leurs dossiers respectifs :
+
+* Contours des départements par région (exemple : [Départements de la région Bourgogne-Franche-Comté](https://github.com/gregoiredavid/france-geojson/tree/master/regions/bourgogne-franche-comte/departements-bourgogne-franche-comte.geojson)).
+* Contours des arrondissements par région et par départements (exemple : [Arrondissements du Finistère](https://github.com/gregoiredavid/france-geojson/tree/master/departements/29-finistere/arrondissements-29-finistere.geojson)).
+* Contours des cantons par région et par départements (exemple : [Cantons de Corrèze](https://github.com/gregoiredavid/france-geojson/tree/master/departements/19-correze/cantons-19-correze.geojson)).
+* Contours des communes par région et par départements (exemple : [Communes du Bas-Rhin](https://github.com/gregoiredavid/france-geojson/tree/master/departements/67-bas-rhin/communes-67-bas-rhin.geojson)).
+
 
 ## Meta-données
 
@@ -29,25 +33,36 @@ Pour optimiser la taille des fichiers, les contours ont été largement simplifi
 
 ## Sources / Mises à jour
 
-Données à jour au 6 février 2017 :
+* [INSEE](http://www.insee.fr/fr/methodes/nomenclatures/cog/telechargement.asp) pour les noms et codes (millésime 2018).
+* [IGN / Admin Express COG](http://professionnels.ign.fr/adminexpress) pour les tracés (édition 2018)
 
-* [INSEE](http://www.insee.fr/fr/methodes/nomenclatures/cog/telechargement.asp) pour les noms et codes (données 2016).
-* [IGN / Geofla](http://professionnels.ign.fr/geofla) pour les contours (version 2.2, 28 juin 2016)
+## Comment ont été générés ces fichiers ?
 
-## Cookbook
+Les données proviennent d'une conversion des tracés depuis le format SHP fourni par l'IGN vers le format GeoJSON via [Mapshaper](https://github.com/mbloch/mapshaper) (cli).
 
-Conversion des contours du format SHP au GeoJSON via [Mapshaper](https://github.com/mbloch/mapshaper) (cli) avec une simplification ("visvalingam weighted", [en savoir plus](https://github.com/mbloch/mapshaper/wiki/Command-Reference#-simplify)) à 15%. Les tracés originaux, non simplifiés, sont disponibles dans la branche "v2-hd-dev" du projet.
+Les données de l'IGN sont extrèmement précises, pour optimiser la taille des fichiers ceux-ci ont été simplifés de 2 manières :
+* La précision des coordonnées a été limitée (conformément [aux recommandations du standard GeoJSON](https://tools.ietf.org/html/rfc7946#section-11.2)) à 5 chiffres après la virgule ce qui correspond à une marge de 1,11 mètres environ.
+* Les tracés ont été simplifiés (méthode ["visvalingam weighted"](https://github.com/mbloch/mapshaper/wiki/Command-Reference#-simplify) à 25% (plus ce chiffre est bas plus la simplification est importante).
+
+Exemple de commande mapshaper pour convertir un fichier shapefile de l'IGN (input.shp) au format geojson avec les paramètres décrits ci-dessus :
+
+```
+mapshaper -i input.shp snap -proj wgs84 -simplify 25% weighted keep-shapes -o format=geojson precision=0.00001 output.json
+```
+
+En cas de besoin, une "version légère" de chaque fichier national (régions, communes, etc...) est également disponible à la racine du repo, elle se base sur les données simplifiées de l'IGN, et une simplification à 5% au lieu de 25% selon la méthode décrite ci-dessus.
+
+Les tracés "bruts", non simplifiés, sont disponibles en téléchargement [en cliquant sur ce lien (143 Mo)](https://france-geojson.gregoiredavid.fr/download/france-geojson-raw.tgz).
 
 ## Données manquantes / incomplètes
 
-* **Arrondissements de mayotte** données incomplètes sur le portail de l'IGN.
+* **Certains arrondissements** : pas de données pour Mayotte et la Martinique (données absentes de la base Admin Express de l'IGN).
 * **[Collectivités d'outre-mer (COM)](https://fr.wikipedia.org/wiki/Collectivit%C3%A9_d%27outre-mer)**, c'est à dire la Polynésie française, Saint-Barthélemy, Saint-Martin, Saint-Pierre-et-Miquelon et Wallis-et-Futuna. Données non proposées par l'IGN à cette date.
-* **[Découpage infracommunal en IRIS](http://professionnels.ign.fr/contoursiris)**, à venir dans une version future.
 
 ## Licence
 
-Voir conditions d'utilisation de GEOFLA ([Licence ouverte](http://www.etalab.gouv.fr/pages/licence-ouverte-open-licence-5899923.html)).
+Voir conditions d'utilisation d'Admin Express ([Licence ouverte](http://www.etalab.gouv.fr/pages/licence-ouverte-open-licence-5899923.html)).
 
 ## Contribuer
 
-Contributions bienvenues. PR de préférence sur la branche v2-dev.
+Contributions, remarques et suggestions bienvenues.
